@@ -1,0 +1,8 @@
+name: "vault"
+version: "1.0.0"
+usage: "get-common, upgrade-common, and delete-common"
+description: |-
+  A Helm plugin for managing VaultStaticSecret resources.
+ignoreFlags: false
+useTunnel: false
+command: "$HELM_PLUGIN_DIR/vault.sh"
