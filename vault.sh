@@ -40,7 +40,7 @@ helmValuesCommonSecrets() {
     fi
 }
 
-deploymentName() {
+getDeploymentName() {
     if [[ "$K8S_DEPLOYMENT" == "" ]]; then
         echo -e "Parameter <DEPLOYMENT> is required.\n"
         usage
@@ -51,6 +51,11 @@ deploymentName() {
 getValutEnvironment() {
     V_ENVIRONMENT="$(yq eval '.vaultSecrets.environment' "$HELM_VALUES")"
     echo "$V_ENVIRONMENT"
+}
+
+getValutEnabled() {
+    V_ENABLED="$(yq eval '.vaultSecrets.enabled' "$HELM_VALUES")"
+    echo "$V_ENABLED"
 }
 
 createVaultStaticSecret() {
@@ -88,7 +93,7 @@ getVaultStaticSecret() {
     echo "$K_GET"
 }
 
-getCommonSecret() {
+getCommonSecrets() {
     K_GET="$(kubectl get secrets "$RESOURCE" -n "$K8S_NAMESPACE" -o yaml 2>/dev/null)"
     echo "$K_GET"
 }
@@ -161,6 +166,19 @@ updateValuesSecrets() {
     done
 }
 
+checkVault() {
+    VAULT_PATH_ENVIRONMENT="$(getValutEnvironment)"
+    if [ "$VAULT_PATH_ENVIRONMENT" == "null" ]; then
+        echo "vault environment not found."
+        exit 0
+    fi
+    VAULT_ENABLED="$(getValutEnabled)"
+    if [ "$VAULT_ENABLED" != "true" ]; then
+        echo "vault is not enabled."
+        exit 0
+    fi
+}
+
 clear() {
     rm -rf "$RESOURCE.yaml"
     # sed sed -i '/commonSecrets:/d' "$HELM_VALUES"
@@ -215,19 +233,15 @@ if [ "$COMMAND" = "get-common" ] || [ "$COMMAND" = "get" ]; then
     getVaultStaticSecret | yq
     exit 0
 elif [ "$COMMAND" == "upgrade-common" ] || [ "$COMMAND" == "upgrade" ]; then
-    deploymentName # Check if deployment name is not empty
+    getDeploymentName # Check if deployment name is not empty
     helmValues     # Check if helm values file exists and common secrets are availables
-    VAULT_PATH_ENVIRONMENT="$(getValutEnvironment)"
-    if [ "$VAULT_PATH_ENVIRONMENT" == "null" ]; then
-        echo "vault environment not found."
-        exit 0
-    fi
+    checkVault     # Check if vault is enabled and vault environment exists
 
     vaultStaticSecret="$(getVaultStaticSecret)"
-    secrets="$(getValuesSecrets | sed 's/- //g')"
-    commonSecrets="$(getCommonSecret | yq eval '.data | keys' 2>/dev/null | sed 's/- //g')"
-
     echo "$vaultStaticSecret" >"$RESOURCE.yaml"
+
+    secrets="$(getValuesSecrets | sed 's/- //g')"
+    commonSecrets="$(getCommonSecrets | yq eval '.data | keys' 2>/dev/null | sed 's/- //g')"
 
     newSecrets=$(getNewSecrets "$secrets" "$commonSecrets")
     newCommonSecrets=$(getNewCommonSecrets "$secrets" "$commonSecrets")
@@ -250,7 +264,7 @@ elif [ "$COMMAND" == "upgrade-common" ] || [ "$COMMAND" == "upgrade" ]; then
 
     yq '.spec.rolloutRestartTargets[].name' "$RESOURCE.yaml" 2>/dev/null
     clear
-elif [ "$COMMAND" == "delete-common" ]; then
+elif [ "$COMMAND" == "delete-common" ] || [ "$COMMAND" == "delete" ]; then
     VAULT_STATIC_SECRET="$(getVaultStaticSecret)"
     echo "$VAULT_STATIC_SECRET" >"$RESOURCE.yaml"
 
