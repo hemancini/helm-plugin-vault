@@ -115,7 +115,7 @@ func main() {
 		namespace = helmNamespace
 	}
 	helmDebug := os.Getenv("HELM_DEBUG")
-	if helmDebug != "" {
+	if helmDebug == "true" {
 		isDebug = true
 	}
 
