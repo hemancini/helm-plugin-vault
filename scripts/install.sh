@@ -15,7 +15,7 @@ validate_checksum() {
         echo "Invalid checksum" > /dev/stderr
         exit 1
     fi
-    echo "Checksum is valid."
+    # echo "Checksum is valid."
 }
 
 on_exit() {
