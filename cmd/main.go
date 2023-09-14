@@ -15,6 +15,7 @@ import (
 var namespace string
 var filePath string
 var vaultEnabled bool
+var isDebug bool
 
 var clientset = utils.K8sClient()
 
@@ -28,6 +29,9 @@ func main() {
 		Short:   "Get common-secrets from vaultStaticSecret",
 		Aliases: []string{"get-common"},
 		Run: func(cmd *cobra.Command, args []string) {
+			if isDebug {
+				fmt.Println("namespace:", namespace)
+			}
 			vaultstaticsecrets := vault.GetVaultCommonSecrets(clientset, namespace, true)
 			if vaultstaticsecrets != nil {
 				yaml, err := yaml.Marshal(&vaultstaticsecrets)
@@ -45,9 +49,17 @@ func main() {
 		Aliases: []string{"upgrade-common"},
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if isDebug {
+				fmt.Printf("namespace: %s\n\n", namespace)
+			}
 
 			chartValues := utils.GetConfigValues(filePath)
 			vaultEnabled = chartValues.VaultSecrets.Enabled
+
+			if isDebug {
+				yamlChartValues, _ := yaml.Marshal(&chartValues)
+				fmt.Printf("file %s\n---\n%s\n", filePath, string(yamlChartValues))
+			}
 
 			if !vaultEnabled {
 				fmt.Printf("VaultSecrets is disabled in %s\n", filePath)
@@ -60,8 +72,23 @@ func main() {
 				vaultStaticSecret = vault.CreateVaultCommonSecret(clientset, namespace, filePath)
 			}
 
+			if isDebug {
+				yamlVaultStaticSecret, _ := yaml.Marshal(&vaultStaticSecret)
+				fmt.Println("Get vaultStaticSecret common-secrets")
+				fmt.Printf("---\n%s\n", string(yamlVaultStaticSecret))
+			}
+
 			secret := vault.GetK8sCommonSecrets(clientset, namespace)
+			if isDebug && len(secret.Kind) > 0 {
+				yamlSecret, _ := yaml.Marshal(&secret)
+				fmt.Println("Get secret common-secrets")
+				fmt.Printf("---\n%s\n", string(yamlSecret))
+			}
 			rolloutRestartTarget := vault.GetRolloutRestartTarget(filePath, *secret, *vaultStaticSecret, deployment)
+			if isDebug {
+				yamlRolloutRestartTarget, _ := yaml.Marshal(&rolloutRestartTarget)
+				fmt.Printf("RolloutRestartTarget: %s", string(yamlRolloutRestartTarget))
+			}
 			vault.PatchCommonSecrets(clientset, namespace, rolloutRestartTarget)
 		},
 	}
@@ -71,15 +98,26 @@ func main() {
 		Short:   "Delete common-secrets from vaultStaticSecret",
 		Aliases: []string{"delete-common"},
 		Run: func(cmd *cobra.Command, args []string) {
+			if isDebug {
+				fmt.Println("namespace:", namespace)
+			}
 			vault.DeleteCommonSecrets(clientset, namespace)
 		},
 	}
 
-	getCommon.Flags().StringVarP(&namespace, "namespace", "n", "default", "Namespace")
-	upgradeCommon.Flags().StringVarP(&namespace, "namespace", "n", "default", "Namespace")
-	upgradeCommon.Flags().StringVarP(&filePath, "file", "f", "", "File with chart values")
 	upgradeCommon.MarkFlagRequired("file")
-	deleteCommon.Flags().StringVarP(&namespace, "namespace", "n", "default", "Namespace")
+	upgradeCommon.Flags().StringVarP(&filePath, "file", "f", "", "File with chart values")
+	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "Namespace")
+	rootCmd.PersistentFlags().BoolVarP(&isDebug, "debug", "d", false, "Debug mode")
+
+	helmNamespace := os.Getenv("HELM_NAMESPACE")
+	if helmNamespace != "" {
+		namespace = helmNamespace
+	}
+	helmDebug := os.Getenv("HELM_DEBUG")
+	if helmDebug != "" {
+		isDebug = true
+	}
 
 	rootCmd.AddCommand(getCommon)
 	rootCmd.AddCommand(upgradeCommon)

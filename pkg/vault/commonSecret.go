@@ -17,21 +17,15 @@ func GetK8sCommonSecrets(clientset *kubernetes.Clientset, namespace string) *Sec
 		SetHeader("Accept", "application/yaml").
 		DoRaw(context.TODO())
 
+	var secret Secret
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return nil
+		fmt.Printf("Warning: secret %s not found in namespace %s\n", resourceCommonName, namespace)
+		return &secret
 	}
 
-	var secret Secret
 	if err := yaml.Unmarshal(data, &secret); err != nil {
 		log.Fatalf("Error to decode YAML file: %v", err)
 	}
-
-	// yaml, err := yaml.Marshal(&secret)
-	// if err != nil {
-	// 	log.Fatalf("error: %v", err)
-	// }
-	// fmt.Printf("---\n%s", string(yaml))
 
 	delete(secret.Data, "_raw")
 	return &secret

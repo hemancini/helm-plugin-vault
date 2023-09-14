@@ -11,8 +11,9 @@ helm plugin install https://github.com/hemancini/helm-plugin-vault.git
 ## Commands
 
 - `helm vault get -n <NAMESPACE>`: Output a VaultStaticSecret resource in YAML format
-- `helm vault upgrade <DEPLOYMENT> -n <NAMESPACE> -f <HELM_VALUES>`: Install or upgrade a VaultStaticSecret common-secrets resource
 - `helm vault delete <DEPLOYMENT> -n <NAMESPACE>`: Delete an installed VaultStaticSecret common-secrets resource
+- `helm vault upgrade <DEPLOYMENT> -n <NAMESPACE> -f <HELM_VALUES>`: Install or upgrade a VaultStaticSecret common-secrets resource
+- `helm vault help`: Help about any command
 
 ## Uninstall
 
