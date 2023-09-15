@@ -15,6 +15,9 @@ func K8sClient() *kubernetes.Clientset {
 	if err != nil {
 		// Si estamos fuera del clúster de Kubernetes, usar config fuera del cluster
 		kubeconfig := os.Getenv("KUBECONFIG")
+		if kubeconfig == "" {
+			kubeconfig = os.Getenv("HOME") + "/.kube/config"
+		}
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
