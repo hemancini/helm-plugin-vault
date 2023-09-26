@@ -65,7 +65,9 @@ func getUpsertCommonSecrets(chartValues string, secret Secret, vaultStaticSecret
 	// configValues.Deployment.CommonSecrets = newConfigCommonSecrets
 
 	configValues["deployment"].(map[interface{}]interface{})["secrets"] = newConfigSecrets
-	configValues["deployment"].(map[interface{}]interface{})["commonSecrets"] = newConfigCommonSecrets
+	if len(newConfigCommonSecrets) > 0 {
+		configValues["deployment"].(map[interface{}]interface{})["commonSecrets"] = newConfigCommonSecrets
+	}
 
 	newYAML, err := yaml.Marshal(&configValues)
 	if err != nil {
