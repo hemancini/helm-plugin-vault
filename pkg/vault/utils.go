@@ -41,7 +41,14 @@ func getUpsertCommonSecrets(chartValues string, secret Secret, vaultStaticSecret
 	}
 
 	configValues := utils.GetConfigValues(chartValues)
-	configSecrets := configValues.Deployment.Secrets
+	// configSecrets := configValues.Deployment.Secrets
+
+	var configSecrets []string
+	if _configSecrets, ok := configValues["deployment"].(map[interface{}]interface{})["secrets"]; ok {
+		for _, secret := range _configSecrets.([]interface{}) {
+			configSecrets = append(configSecrets, secret.(string))
+		}
+	}
 
 	newConfigSecrets := diffArrays(configSecrets, commonSecrets)
 	newConfigCommonSecrets := commonArray(configSecrets, commonSecrets)
@@ -54,8 +61,11 @@ func getUpsertCommonSecrets(chartValues string, secret Secret, vaultStaticSecret
 	// fmt.Println("newConfigCommonSecrets:", newConfigCommonSecrets)
 	// fmt.Println("diffDeployment:", diffDeployment)
 
-	configValues.Deployment.Secrets = newConfigSecrets
-	configValues.Deployment.CommonSecrets = newConfigCommonSecrets
+	// configValues.Deployment.Secrets = newConfigSecrets
+	// configValues.Deployment.CommonSecrets = newConfigCommonSecrets
+
+	configValues["deployment"].(map[interface{}]interface{})["secrets"] = newConfigSecrets
+	configValues["deployment"].(map[interface{}]interface{})["commonSecrets"] = newConfigCommonSecrets
 
 	newYAML, err := yaml.Marshal(&configValues)
 	if err != nil {

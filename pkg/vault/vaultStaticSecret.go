@@ -16,7 +16,6 @@ import (
 )
 
 type VaultStaticSecret types.VaultStaticSecret
-type ChartValues types.ChartValues
 type Secret types.Secrets
 
 var resourceCommonName = types.ResourceCommonName

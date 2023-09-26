@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"helm-plugin-vault/pkg/utils"
 	"helm-plugin-vault/pkg/vault"
-	"os"
-
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -54,7 +53,12 @@ func main() {
 			}
 
 			chartValues := utils.GetConfigValues(filePath)
-			vaultEnabled = chartValues.VaultSecrets.Enabled
+			// vaultEnabled = chartValues.VaultSecrets.Enabled
+
+			var vaultEnabled bool
+			if _enabled, isEnabled := chartValues["vaultSecrets"].(map[interface{}]interface{})["enabled"]; isEnabled {
+				vaultEnabled = _enabled.(bool)
+			}
 
 			if isDebug {
 				yamlChartValues, _ := yaml.Marshal(&chartValues)

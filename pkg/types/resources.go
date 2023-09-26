@@ -38,36 +38,6 @@ type RolloutRestartTarget struct {
 	Name string `json:"name"`
 }
 
-type ChartValues struct {
-	Deployment struct {
-		ContainerPort int `yaml:"containerPort"`
-		Envs          []struct {
-			Name  string `yaml:"name"`
-			Value string `yaml:"value"`
-		} `yaml:"envs"`
-		Secrets       []string `yaml:"secrets"`
-		CommonSecrets []string `yaml:"commonSecrets"`
-	} `yaml:"deployment"`
-	VaultSecrets struct {
-		Enabled bool `yaml:"enabled"`
-	} `yaml:"vaultSecrets"`
-	Image struct {
-		Repository string `yaml:"repository"`
-		Tag        string `yaml:"tag"`
-		PullPolicy string `yaml:"pullPolicy"`
-	} `yaml:"image"`
-	Namespace string `yaml:"namespace"`
-	Ingress   struct {
-		Enabled bool `yaml:"enabled"`
-	} `yaml:"ingress"`
-	LivenessProbe struct {
-		Enabled bool `yaml:"enabled"`
-	} `yaml:"livenessProbe"`
-	ReadinessProbe struct {
-		Enabled bool `yaml:"enabled"`
-	} `yaml:"readinessProbe"`
-}
-
 type Secrets struct {
 	APIVersion string                 `yaml:"apiVersion"`
 	Kind       string                 `yaml:"kind"`

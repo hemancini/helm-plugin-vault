@@ -1,17 +1,14 @@
 package utils
 
 import (
-	"helm-plugin-vault/pkg/types"
 	"log"
 	"os"
 
 	"gopkg.in/yaml.v2"
 )
 
-type ChartValues types.ChartValues
-
-func GetConfigValues(filename string) ChartValues {
-	var configValues ChartValues
+func GetConfigValues(filename string) map[string]interface{} {
+	var configValues map[string]interface{}
 
 	yamlFile, err := os.ReadFile(filename)
 	if err != nil {
