@@ -56,8 +56,10 @@ func main() {
 			// vaultEnabled = chartValues.VaultSecrets.Enabled
 
 			var vaultEnabled bool
-			if _enabled, isEnabled := chartValues["vaultSecrets"].(map[interface{}]interface{})["enabled"]; isEnabled {
-				vaultEnabled = _enabled.(bool)
+			if _vaultSecrets, ok1 := chartValues["vaultSecrets"]; ok1 {
+				if _enabled, ok2 := _vaultSecrets.(map[interface{}]interface{})["enabled"]; ok2 {
+					vaultEnabled = _enabled.(bool)
+				}
 			}
 
 			if isDebug {

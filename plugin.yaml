@@ -1,5 +1,5 @@
 name: 'vault'
-version: '1.0.5'
+version: '1.0.6'
 usage: 'get-common, upgrade-common, and delete-common'
 description: |-
   A Helm plugin for managing VaultStaticSecret resources.
